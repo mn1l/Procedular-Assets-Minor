@@ -527,7 +527,7 @@ GameObject:
   - component: {fileID: 1435795072}
   - component: {fileID: 1435795071}
   m_Layer: 0
-  m_Name: Script
+  m_Name: MazeGenerationScript
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -546,7 +546,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemap: {fileID: 399411090}
-  tileToPlace: {fileID: 11400000, guid: 051983612eb647143b64d25bbed65275, type: 2}
+  pathTile: {fileID: 11400000, guid: 051983612eb647143b64d25bbed65275, type: 2}
+  wallTile: {fileID: 11400000, guid: 4bf9646032844c04291c1b6fa8957c8a, type: 2}
+  width: 10
+  height: 10
 --- !u!4 &1435795072
 Transform:
   m_ObjectHideFlags: 0
