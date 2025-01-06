@@ -3,19 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+// Ability to generate the maze and keep it during edit mode,
+// Provides the ability to make tweaks to the maze in case the generation went wrong. etc.
+[ExecuteAlways]
 public class RecursiveBacktrackingMaze : MonoBehaviour
 {
-    public Tilemap tilemap; // The tilemap used for the maze
-    public Tile pathTile;   // The tile used for paths
-    public Tile wallTile;   // The tile used for walls
-    
-    // Maze size
-    public int width;
-    public int height;
+    [Header("Maze Settings")]
+    public int width = 10;
+    public int height = 10;
+    public int seed = -1; // Optional to randomise the maze or set a specific seed
+
+    [Header("Tilemap and Tiles")]
+    public Tilemap tilemap;
+    public Tile pathTile;
+    public Tile wallTile;
 
     private int[,] grid;    // Internal representation of the maze
     private const int N = 1, S = 2, E = 4, W = 8; // Directions
-    
+
     private readonly Dictionary<int, Vector2Int> directionVectors = new Dictionary<int, Vector2Int>
     {
         { E, new Vector2Int(1, 0) },
@@ -36,12 +41,33 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         GenerateMaze();
     }
 
-    void GenerateMaze()
+    public void GenerateMaze()
     {
+        ClearMaze(); // Reset map
+
+        // Set the random seed if a valid seed is provided
+        if (seed >= 1)
+        {
+            UnityEngine.Random.InitState(seed);
+        }
+        else
+        {
+            seed = UnityEngine.Random.Range(0, int.MaxValue);
+            Debug.Log($"Generated Seed: {seed}");
+        }
+
         grid = new int[height, width];
         CarvePassagesFrom(0, 0);
 
         DrawMaze();
+    }
+
+    public void ClearMaze()
+    {
+        if (tilemap != null)
+        {
+            tilemap.ClearAllTiles();
+        }
     }
 
     void CarvePassagesFrom(int cx, int cy)
@@ -65,6 +91,9 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
 
     void DrawMaze()
     {
+        // Make sure that the path tiles do not have a collider
+        pathTile.colliderType = Tile.ColliderType.None;
+
         // Draw walls for the entire grid
         for (int y = 0; y < height * 2 + 1; y++)
         {
