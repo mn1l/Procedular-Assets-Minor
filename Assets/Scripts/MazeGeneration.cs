@@ -8,12 +8,10 @@ using UnityEngine.Tilemaps;
 [ExecuteAlways]
 public class RecursiveBacktrackingMaze : MonoBehaviour
 {
-    [Header("Maze Settings")]
     public int width = 10;
     public int height = 10;
     public int seed = -1; // Optional to randomise the maze or set a specific seed
-
-    [Header("Tilemap and Tiles")]
+    
     public Tilemap tilemap;
     public Tile pathTile;
     public Tile wallTile;
@@ -36,16 +34,26 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         { S, N }
     };
 
+    /*
+    // Not useful anymore with the editor script and GUI buttons
     void Start()
     {
         GenerateMaze();
     }
-
+    */
+    
+    
+    /*
+     * 1. Clears the exisiting maze
+     * 2. Sets the seed
+     * 3. Initializes the internal grid representation of the maze
+     * 4. Uses the recursive backtracking algorithm to carve the paths
+     * 5. Visualizes the maze on the tilemap by calling DrawMaze
+     */
     public void GenerateMaze()
     {
-        ClearMaze(); // Reset map
-
-        // Set the random seed if a valid seed is provided
+        ClearMaze();
+        
         if (seed >= 1)
         {
             UnityEngine.Random.InitState(seed);
@@ -70,6 +78,10 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         }
     }
 
+    /*
+     * Recursive method that creates the maze by carving passages between cells
+     * Randomly shuffles directions and connects cells that haven't been visited yet
+     */
     void CarvePassagesFrom(int cx, int cy)
     {
         var directions = new List<int> { N, S, E, W };
@@ -89,12 +101,18 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         }
     }
 
+    
+    /*
+     * Draws the entire maze on the Tilemap:
+     * 1. Makes sure that the path tiles do not have a 2d collider
+     * 2. Fills the entire area with walls
+     * 3. Sets specific tiles as paths based on the internal grid representation
+     * 4. Ensures connections between cells are visualized correctly
+     */
     void DrawMaze()
     {
-        // Make sure that the path tiles do not have a collider
         pathTile.colliderType = Tile.ColliderType.None;
-
-        // Draw walls for the entire grid
+        
         for (int y = 0; y < height * 2 + 1; y++)
         {
             for (int x = 0; x < width * 2 + 1; x++)
@@ -103,8 +121,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                 tilemap.SetTile(position, wallTile);
             }
         }
-
-        // Draw paths based on the grid
+        
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
@@ -127,7 +144,10 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             }
         }
     }
-
+    
+    /*
+     * Randomly shuffle the elements of a list to randomize the direction order in CarvePassagesFrom
+     */
     void Shuffle<T>(IList<T> list)
     {
         for (int i = list.Count - 1; i > 0; i--)
