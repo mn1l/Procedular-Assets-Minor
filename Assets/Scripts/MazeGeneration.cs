@@ -61,7 +61,6 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         else
         {
             seed = UnityEngine.Random.Range(0, int.MaxValue);
-            Debug.Log($"Generated Seed: {seed}");
         }
 
         grid = new int[height, width];
@@ -75,6 +74,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         if (tilemap != null)
         {
             tilemap.ClearAllTiles();
+            seed = -1;
         }
     }
 
@@ -110,40 +110,70 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
      * 4. Ensures connections between cells are visualized correctly
      */
     void DrawMaze()
+{
+    pathTile.colliderType = Tile.ColliderType.None;
+
+    // Fill the entire area with walls
+    for (int y = 0; y < height * 2 + 1; y++)
     {
-        pathTile.colliderType = Tile.ColliderType.None;
-        
-        for (int y = 0; y < height * 2 + 1; y++)
+        for (int x = 0; x < width * 2 + 1; x++)
         {
-            for (int x = 0; x < width * 2 + 1; x++)
+            var position = new Vector3Int(x, y, 0);
+            tilemap.SetTile(position, wallTile); // Default to walls
+        }
+    }
+
+    // Draw the maze based on the grid representation
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            int cell = grid[y, x];
+            var basePosition = new Vector3Int(x * 2 + 1, y * 2 + 1, 0);
+
+            // Draw the cell itself as a path
+            tilemap.SetTile(basePosition, pathTile);
+
+            // Draw connections based on the carved paths in the grid
+            if ((cell & E) != 0) // East connection
+            {
+                tilemap.SetTile(basePosition + Vector3Int.right, pathTile);
+            }
+            if ((cell & S) != 0) // South connection
+            {
+                tilemap.SetTile(basePosition + Vector3Int.down, pathTile);
+            }
+        }
+    }
+
+    // Add the entrance (top-left corner) and exit (bottom-right corner)
+    var entrancePosition = new Vector3Int(1, height * 2, 0); // Top-left
+    tilemap.SetTile(entrancePosition, pathTile);
+
+    var exitPosition = new Vector3Int(width * 2 - 1, 0, 0); // Bottom-right
+    tilemap.SetTile(exitPosition, pathTile);
+
+    // Surround the maze with walls to ensure no other exits
+    for (int y = 0; y < height * 2 + 1; y++)
+    {
+        for (int x = 0; x < width * 2 + 1; x++)
+        {
+            // Skip entrance and exit positions
+            if ((y == height * 2 && x == 1) || (y == 0 && x == width * 2 - 1))
+            {
+                continue;
+            }
+
+            // Ensure no gaps in the boundary
+            if (x == 0 || x == width * 2 || y == 0 || y == height * 2)
             {
                 var position = new Vector3Int(x, y, 0);
                 tilemap.SetTile(position, wallTile);
             }
         }
-        
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                int cell = grid[y, x];
-                var basePosition = new Vector3Int(x * 2 + 1, y * 2 + 1, 0);
-
-                // Draw the cell itself
-                tilemap.SetTile(basePosition, pathTile);
-
-                // Draw connections
-                if ((cell & E) != 0)
-                {
-                    tilemap.SetTile(basePosition + Vector3Int.right, pathTile);
-                }
-                if ((cell & S) != 0)
-                {
-                    tilemap.SetTile(basePosition + Vector3Int.down, pathTile);
-                }
-            }
-        }
     }
+}
+
     
     /*
      * Randomly shuffle the elements of a list to randomize the direction order in CarvePassagesFrom
