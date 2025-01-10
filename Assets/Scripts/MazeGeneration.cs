@@ -25,16 +25,34 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
     {
         { E, new Vector2Int(1, 0) },
         { W, new Vector2Int(-1, 0) },
-        { N, new Vector2Int(0, -1) },
-        { S, new Vector2Int(0, 1) }
+        { N, new Vector2Int(0, 1) },
+        { S, new Vector2Int(0, -1) }
     };
-    private readonly Dictionary<int, int> opposites = new Dictionary<int, int>
+
+    // private readonly Dictionary<int, int> opposites = new Dictionary<int, int>
+    // {
+    //     { E, W },
+    //     { W, E },
+    //     { N, S },
+    //     { S, N }
+    // };
+
+    private int opposites(int direction)
     {
-        { E, W },
-        { W, E },
-        { N, S },
-        { S, N }
-    };
+        switch (direction)
+        {
+            case E:
+                return W;
+            case W: 
+                return E;
+            case N:
+                return S;
+            case S:
+                return N;
+            default:
+                return N;
+        }
+    }
     
     /*
      * 1. Clears the exisiting maze
@@ -88,7 +106,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             if (ny >= 0 && ny < height && nx >= 0 && nx < width && grid[ny, nx] == 0)
             {
                 grid[cy, cx] |= direction;
-                grid[ny, nx] |= opposites[direction];
+                grid[ny, nx] |= opposites(direction);
                 CarvePassagesFrom(nx, ny);
             }
         }
@@ -177,7 +195,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             }
         }
 
-        // Randomly place 3 Key GameObjects on path tiles
+        //Randomly place 3 Key GameObjects on path tiles
         if (keyObject != null && pathTiles.Count > 3)
         {
             for (int i = 0; i < 3; i++)
