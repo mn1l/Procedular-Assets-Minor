@@ -15,6 +15,8 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
     public Tilemap tilemap;
     public Tile pathTile;
     public Tile wallTile;
+    public GameObject keyObject;
+    public GameObject exitObject;
 
     private int[,] grid;    // Internal representation of the maze
     private const int N = 1, S = 2, E = 4, W = 8; // Directions
@@ -33,15 +35,6 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         { N, S },
         { S, N }
     };
-
-    /*
-    // Not useful anymore with the editor script and GUI buttons
-    void Start()
-    {
-        GenerateMaze();
-    }
-    */
-    
     
     /*
      * 1. Clears the exisiting maze
@@ -110,69 +103,128 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
      * 4. Ensures connections between cells are visualized correctly
      */
     void DrawMaze()
-{
-    pathTile.colliderType = Tile.ColliderType.None;
-
-    // Fill the entire area with walls
-    for (int y = 0; y < height * 2 + 1; y++)
     {
-        for (int x = 0; x < width * 2 + 1; x++)
+        pathTile.colliderType = Tile.ColliderType.None;
+
+        // Fill the entire area with walls
+        for (int y = 0; y < height * 2 + 1; y++)
         {
-            var position = new Vector3Int(x, y, 0);
-            tilemap.SetTile(position, wallTile); // Default to walls
-        }
-    }
-
-    // Draw the maze based on the grid representation
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            int cell = grid[y, x];
-            var basePosition = new Vector3Int(x * 2 + 1, y * 2 + 1, 0);
-
-            // Draw the cell itself as a path
-            tilemap.SetTile(basePosition, pathTile);
-
-            // Draw connections based on the carved paths in the grid
-            if ((cell & E) != 0) // East connection
-            {
-                tilemap.SetTile(basePosition + Vector3Int.right, pathTile);
-            }
-            if ((cell & S) != 0) // South connection
-            {
-                tilemap.SetTile(basePosition + Vector3Int.down, pathTile);
-            }
-        }
-    }
-
-    // Add the entrance (top-left corner) and exit (bottom-right corner)
-    var entrancePosition = new Vector3Int(1, height * 2, 0); // Top-left
-    tilemap.SetTile(entrancePosition, pathTile);
-
-    var exitPosition = new Vector3Int(width * 2 - 1, 0, 0); // Bottom-right
-    tilemap.SetTile(exitPosition, pathTile);
-
-    // Surround the maze with walls to ensure no other exits
-    for (int y = 0; y < height * 2 + 1; y++)
-    {
-        for (int x = 0; x < width * 2 + 1; x++)
-        {
-            // Skip entrance and exit positions
-            if ((y == height * 2 && x == 1) || (y == 0 && x == width * 2 - 1))
-            {
-                continue;
-            }
-
-            // Ensure no gaps in the boundary
-            if (x == 0 || x == width * 2 || y == 0 || y == height * 2)
+            for (int x = 0; x < width * 2 + 1; x++)
             {
                 var position = new Vector3Int(x, y, 0);
-                tilemap.SetTile(position, wallTile);
+                tilemap.SetTile(position, wallTile); // Default to walls
             }
         }
-    }
+
+        // List to store all available path tiles (empty spaces in the maze)
+        List<Vector3Int> pathTiles = new List<Vector3Int>();
+
+        // Draw the maze based on the grid representation
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int cell = grid[y, x];
+                var basePosition = new Vector3Int(x * 2 + 1, y * 2 + 1, 0);
+
+                // Draw the cell itself as a path
+                tilemap.SetTile(basePosition, pathTile);
+
+                // Add the path tile to the list
+                pathTiles.Add(basePosition);
+
+                // Draw connections based on the carved paths in the grid
+                if ((cell & E) != 0) // East connection
+                {
+                    tilemap.SetTile(basePosition + Vector3Int.right, pathTile);
+                }
+                if ((cell & S) != 0) // South connection
+                {
+                    tilemap.SetTile(basePosition + Vector3Int.down, pathTile);
+                }
+            }
+        }
+
+        // Add the entrance (top-left corner) as a path tile
+        var entrancePosition = new Vector3Int(1, height * 2, 0); // Top-left
+        tilemap.SetTile(entrancePosition, pathTile);
+
+        // Add the exit (bottom-right corner) as a GameObject
+        var exitPosition = new Vector3Int(width * 2 - 1, 0, 0); // Bottom-right
+        tilemap.SetTile(exitPosition, pathTile); // Still set a path tile for consistency
+
+        // Find the existing exit GameObject and place it
+        if (exitObject != null)
+        {
+            // Find the existing exit object by name (you can also use a tag if you prefer)
+            GameObject existingExit = GameObject.Find("Exit");
+
+            if (existingExit != null)
+            {
+                // Convert tilemap coordinates to world position
+                Vector3 worldPosition = tilemap.CellToWorld(exitPosition);
+
+                // Adjust the position to center the object
+                worldPosition.x += tilemap.cellSize.x / 2f;
+                worldPosition.y += tilemap.cellSize.y / 2f;
+
+                // Move the existing exit object to the new position
+                existingExit.transform.position = worldPosition;
+            }
+            else
+            {
+                Instantiate(exitObject.gameObject, tilemap.CellToWorld(exitPosition), Quaternion.identity);
+            }
+        }
+
+        // Randomly place 3 Key GameObjects on path tiles
+        if (keyObject != null && pathTiles.Count > 3)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                // Randomly pick a path tile from the list
+                int randomIndex = UnityEngine.Random.Range(0, pathTiles.Count);
+                Vector3Int randomTilePosition = pathTiles[randomIndex];
+
+                // Convert tilemap coordinates to world position
+                Vector3 worldPosition = tilemap.CellToWorld(randomTilePosition);
+
+                // Adjust the position to center the object
+                worldPosition.x += tilemap.cellSize.x / 2f;
+                worldPosition.y += tilemap.cellSize.y / 2f;
+
+                // Instantiate the Key GameObject
+                GameObject keyInstance = Instantiate(keyObject.gameObject, worldPosition, Quaternion.identity);
+                keyInstance.name = "Key_" + i;
+                
+                // Optionally remove the placed key from the list to avoid reusing the same tile
+                pathTiles.RemoveAt(randomIndex);
+            }
+        }
+
+        // Surround the maze with walls to ensure no other exits
+        for (int y = 0; y < height * 2 + 1; y++)
+        {
+            for (int x = 0; x < width * 2 + 1; x++)
+            {
+                // Skip entrance and exit positions
+                if ((y == height * 2 && x == 1) || (y == 0 && x == width * 2 - 1))
+                {
+                    continue;
+                }
+
+                // Ensure no gaps in the boundary
+                if (x == 0 || x == width * 2 || y == 0 || y == height * 2)
+                {
+                    var position = new Vector3Int(x, y, 0);
+                    tilemap.SetTile(position, wallTile);
+                }
+            }
+        }
 }
+
+
+
 
     
     /*

@@ -31,11 +31,13 @@ public class RecursiveBacktrackingMazeEditor : Editor
         EditorGUILayout.EndHorizontal();
         EditorGUILayout.Space(); // Add spacing below the buttons
 
-        // Draw "Tilemap and Tiles" fields
+        // Draw "Tilemap, Tiles and Objects" fields
         EditorGUILayout.LabelField("Tilemap and Tiles", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("tilemap"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("pathTile"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("wallTile"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("keyObject"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("exitObject"));
 
         // Apply changes to serialized properties
         serializedObject.ApplyModifiedProperties();
