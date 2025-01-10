@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 // Ability to generate the maze and keep it during edit mode,
@@ -10,13 +11,16 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
 {
     public int width = 10;
     public int height = 10;
+    public int thickness = 1;
     public int seed = -1; // Optional to randomise the maze or set a specific seed
     
-    public Tilemap tilemap;
+    public Tilemap mazeTilemap;
+    public Tilemap objectsTilemap;
+        
     public Tile pathTile;
-    public Tile wallTile;
-    public GameObject keyObject;
-    public GameObject exitObject;
+    public TileBase wallRuleTile;
+    public Tile chestTile;
+    public Tile doorTile;
 
     private int[,] grid;    // Internal representation of the maze
     private const int N = 1, S = 2, E = 4, W = 8; // Directions
@@ -82,9 +86,10 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
 
     public void ClearMaze()
     {
-        if (tilemap != null)
+        if (mazeTilemap != null)
         {
-            tilemap.ClearAllTiles();
+            mazeTilemap.ClearAllTiles();
+            objectsTilemap.ClearAllTiles();
             seed = -1;
         }
     }
@@ -130,7 +135,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             for (int x = 0; x < width * 2 + 1; x++)
             {
                 var position = new Vector3Int(x, y, 0);
-                tilemap.SetTile(position, wallTile); // Default to walls
+                mazeTilemap.SetTile(position, wallRuleTile);
             }
         }
 
@@ -146,7 +151,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                 var basePosition = new Vector3Int(x * 2 + 1, y * 2 + 1, 0);
 
                 // Draw the cell itself as a path
-                tilemap.SetTile(basePosition, pathTile);
+                mazeTilemap.SetTile(basePosition, pathTile);
 
                 // Add the path tile to the list
                 pathTiles.Add(basePosition);
@@ -154,49 +159,35 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                 // Draw connections based on the carved paths in the grid
                 if ((cell & E) != 0) // East connection
                 {
-                    tilemap.SetTile(basePosition + Vector3Int.right, pathTile);
+                    mazeTilemap.SetTile(basePosition + Vector3Int.right, pathTile);
                 }
                 if ((cell & S) != 0) // South connection
                 {
-                    tilemap.SetTile(basePosition + Vector3Int.down, pathTile);
+                    mazeTilemap.SetTile(basePosition + Vector3Int.down, pathTile);
                 }
             }
         }
 
-        // Add the entrance (top-left corner) as a path tile
-        var entrancePosition = new Vector3Int(1, height * 2, 0); // Top-left
-        tilemap.SetTile(entrancePosition, pathTile);
+        // Add the exit & entrance as a path tile
+        var entrancePosition = new Vector3Int(1, height * 2, 0);
+        mazeTilemap.SetTile(entrancePosition, pathTile);
+        
+        var exitPosition = new Vector3Int(width * 2 - 1, 0, 0);
+        mazeTilemap.SetTile(exitPosition, pathTile);
 
-        // Add the exit (bottom-right corner) as a GameObject
-        var exitPosition = new Vector3Int(width * 2 - 1, 0, 0); // Bottom-right
-        tilemap.SetTile(exitPosition, pathTile); // Still set a path tile for consistency
-
-        // Find the existing exit GameObject and place it
-        if (exitObject != null)
+        // Place the exit tile at the specified position
+        if (doorTile != null)
         {
-            // Find the existing exit object by name (you can also use a tag if you prefer)
-            GameObject existingExit = GameObject.Find("Exit");
-
-            if (existingExit != null)
+            // Ensure the exit tile position is valid
+            if (mazeTilemap.HasTile(exitPosition))
             {
-                // Convert tilemap coordinates to world position
-                Vector3 worldPosition = tilemap.CellToWorld(exitPosition);
-
-                // Adjust the position to center the object
-                worldPosition.x += tilemap.cellSize.x / 2f;
-                worldPosition.y += tilemap.cellSize.y / 2f;
-
-                // Move the existing exit object to the new position
-                existingExit.transform.position = worldPosition;
-            }
-            else
-            {
-                Instantiate(exitObject.gameObject, tilemap.CellToWorld(exitPosition), Quaternion.identity);
+                // Set the tile at the exit position to the door tile
+                mazeTilemap.SetTile(exitPosition, doorTile);
             }
         }
 
-        //Randomly place 3 Key GameObjects on path tiles
-        if (keyObject != null && pathTiles.Count > 3)
+        // Randomly place 3 key tiles on path tiles
+        if (chestTile != null && pathTiles.Count > 3)
         {
             for (int i = 0; i < 3; i++)
             {
@@ -204,23 +195,15 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                 int randomIndex = UnityEngine.Random.Range(0, pathTiles.Count);
                 Vector3Int randomTilePosition = pathTiles[randomIndex];
 
-                // Convert tilemap coordinates to world position
-                Vector3 worldPosition = tilemap.CellToWorld(randomTilePosition);
+                // Set the tile at the chosen position to the chest tile on the ChestTilemap
+                objectsTilemap.SetTile(randomTilePosition, chestTile);
 
-                // Adjust the position to center the object
-                worldPosition.x += tilemap.cellSize.x / 2f;
-                worldPosition.y += tilemap.cellSize.y / 2f;
-
-                // Instantiate the Key GameObject
-                GameObject keyInstance = Instantiate(keyObject.gameObject, worldPosition, Quaternion.identity);
-                keyInstance.name = "Key_" + i;
-                
                 // Optionally remove the placed key from the list to avoid reusing the same tile
                 pathTiles.RemoveAt(randomIndex);
             }
         }
 
-        // Surround the maze with walls to ensure no other exits
+        // Surround the maze with walls
         for (int y = 0; y < height * 2 + 1; y++)
         {
             for (int x = 0; x < width * 2 + 1; x++)
@@ -235,15 +218,11 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                 if (x == 0 || x == width * 2 || y == 0 || y == height * 2)
                 {
                     var position = new Vector3Int(x, y, 0);
-                    tilemap.SetTile(position, wallTile);
+                    mazeTilemap.SetTile(position, wallRuleTile);
                 }
             }
         }
-}
-
-
-
-
+    }
     
     /*
      * Randomly shuffle the elements of a list to randomize the direction order in CarvePassagesFrom

@@ -13,6 +13,7 @@ public class RecursiveBacktrackingMazeEditor : Editor
         EditorGUILayout.LabelField("Maze Settings", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("width"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("height"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("thickness"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("seed"));
 
         // Add buttons between Maze Settings and Tilemap settings
@@ -32,12 +33,17 @@ public class RecursiveBacktrackingMazeEditor : Editor
         EditorGUILayout.Space(); // Add spacing below the buttons
 
         // Draw "Tilemap, Tiles and Objects" fields
-        EditorGUILayout.LabelField("Tilemap and Tiles", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("tilemap"));
+        EditorGUILayout.LabelField("Tilemaps", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("mazeTilemap"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("objectsTilemap"));
+        
+        EditorGUILayout.Space();
+        
+        EditorGUILayout.LabelField("Tiles", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("pathTile"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("wallTile"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("keyObject"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("exitObject"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("wallRuleTile"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("chestTile"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("doorTile"));
 
         // Apply changes to serialized properties
         serializedObject.ApplyModifiedProperties();
