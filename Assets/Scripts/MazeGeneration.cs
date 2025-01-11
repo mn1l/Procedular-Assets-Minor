@@ -16,11 +16,14 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
     
     public Tilemap mazeTilemap;
     public Tilemap objectsTilemap;
+    public Tilemap openedTilemap;
         
     public Tile pathTile;
     public TileBase wallRuleTile;
     public Tile chestTile;
+    public Tile openedChestTile;
     public Tile doorTile;
+    public Tile openedDoorTile;
 
     private int[,] grid;    // Internal representation of the maze
     private const int N = 1, S = 2, E = 4, W = 8; // Directions
@@ -90,6 +93,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         {
             mazeTilemap.ClearAllTiles();
             objectsTilemap.ClearAllTiles();
+            openedTilemap.ClearAllTiles();
             seed = -1;
         }
     }
@@ -173,20 +177,21 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
         mazeTilemap.SetTile(entrancePosition, pathTile);
         
         var exitPosition = new Vector3Int(width * 2 - 1, 0, 0);
-        mazeTilemap.SetTile(exitPosition, pathTile);
+        objectsTilemap.SetTile(exitPosition, pathTile);
 
         // Place the exit tile at the specified position
         if (doorTile != null)
         {
             // Ensure the exit tile position is valid
-            if (mazeTilemap.HasTile(exitPosition))
+            if (objectsTilemap.HasTile(exitPosition))
             {
                 // Set the tile at the exit position to the door tile
-                mazeTilemap.SetTile(exitPosition, doorTile);
+                objectsTilemap.SetTile(exitPosition, doorTile);
+                openedTilemap.SetTile(exitPosition, openedDoorTile);
             }
         }
 
-        // Randomly place 3 key tiles on path tiles
+        // Randomly place 3 chest tiles on path tiles
         if (chestTile != null && pathTiles.Count > 3)
         {
             for (int i = 0; i < 3; i++)
@@ -197,6 +202,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
 
                 // Set the tile at the chosen position to the chest tile on the ChestTilemap
                 objectsTilemap.SetTile(randomTilePosition, chestTile);
+                openedTilemap.SetTile(randomTilePosition, openedChestTile);
 
                 // Optionally remove the placed key from the list to avoid reusing the same tile
                 pathTiles.RemoveAt(randomIndex);

@@ -36,6 +36,7 @@ public class RecursiveBacktrackingMazeEditor : Editor
         EditorGUILayout.LabelField("Tilemaps", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(serializedObject.FindProperty("mazeTilemap"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("objectsTilemap"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("openedTilemap"));
         
         EditorGUILayout.Space();
         
@@ -43,7 +44,9 @@ public class RecursiveBacktrackingMazeEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("pathTile"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("wallRuleTile"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("chestTile"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("openedChestTile"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("doorTile"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("openedDoorTile"));
 
         // Apply changes to serialized properties
         serializedObject.ApplyModifiedProperties();
