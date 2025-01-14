@@ -11,8 +11,10 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
 {
     public int width = 10;
     public int height = 10;
-    public int thickness = 1;
     public int seed = -1; // Optional to randomise the maze or set a specific seed
+
+    public int startIdx = 1;
+    public int exitIdx = 1;
     
     public Tilemap mazeTilemap;
     public Tilemap objectsTilemap;
@@ -21,8 +23,8 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
     public Tile pathTile;
     public TileBase wallRuleTile;
     public Tile chestTile;
-    public Tile openedChestTile;
     public Tile doorTile;
+    public Tile openedChestTile;
     public Tile openedDoorTile;
 
     private int[,] grid;    // Internal representation of the maze
@@ -172,24 +174,26 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             }
         }
 
-        // Add the exit & entrance as a path tile
-        var entrancePosition = new Vector3Int(1, height * 2, 0);
-        mazeTilemap.SetTile(entrancePosition, pathTile);
-        
-        var exitPosition = new Vector3Int(width * 2 - 1, 0, 0);
-        objectsTilemap.SetTile(exitPosition, pathTile);
+        exitEntrance();
 
-        // Place the exit tile at the specified position
-        if (doorTile != null)
-        {
-            // Ensure the exit tile position is valid
-            if (objectsTilemap.HasTile(exitPosition))
-            {
-                // Set the tile at the exit position to the door tile
-                objectsTilemap.SetTile(exitPosition, doorTile);
-                openedTilemap.SetTile(exitPosition, openedDoorTile);
-            }
-        }
+        // // Add the exit & entrance as a path tile
+        // var entrancePosition = new Vector3Int(1, height * 2, 0);
+        // mazeTilemap.SetTile(entrancePosition, pathTile);
+        //
+        // var exitPosition = new Vector3Int(width * 2 - 1, 0, 0);
+        // objectsTilemap.SetTile(exitPosition, pathTile);
+
+        // // Place the exit tile at the specified position
+        // if (doorTile != null)
+        // {
+        //     // Ensure the exit tile position is valid
+        //     if (objectsTilemap.HasTile(exitPosition))
+        //     {
+        //         // Set the tile at the exit position to the door tile
+        //         objectsTilemap.SetTile(exitPosition, doorTile);
+        //         openedTilemap.SetTile(exitPosition, openedDoorTile);
+        //     }
+        // }
 
         // Randomly place 3 chest tiles on path tiles
         if (chestTile != null && pathTiles.Count > 3)
@@ -215,7 +219,7 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
             for (int x = 0; x < width * 2 + 1; x++)
             {
                 // Skip entrance and exit positions
-                if ((y == height * 2 && x == 1) || (y == 0 && x == width * 2 - 1))
+                if (mazeTilemap.GetTile(new Vector3Int(x, y, 0)) == pathTile)
                 {
                     continue;
                 }
@@ -226,6 +230,62 @@ public class RecursiveBacktrackingMaze : MonoBehaviour
                     var position = new Vector3Int(x, y, 0);
                     mazeTilemap.SetTile(position, wallRuleTile);
                 }
+            }
+        }
+    }
+
+
+    void exitEntrance()
+    {
+        Vector3Int entrancePosition = Vector3Int.zero;
+        
+        switch (startIdx)
+        {
+            case 0: // North (Top-left corner)
+                entrancePosition = new Vector3Int(1, height * 2, 0);
+                break;
+            case 1: // East (Right-Top corner)
+                entrancePosition = new Vector3Int(width * 2, height * 2 - 1, 0);
+                break;
+            case 2: // South (Bottom-right corner)
+                entrancePosition = new Vector3Int(width * 2 - 1, 0, 0);
+                break;
+            case 3: // West (Left-bottom corner)
+                entrancePosition = new Vector3Int(0, 1, 0);
+                break;
+        }
+
+        mazeTilemap.SetTile(entrancePosition, pathTile);
+        
+        Vector3Int exitPosition = Vector3Int.zero;
+
+        switch (exitIdx)
+        {
+            case 0: // North (Top-right corner)
+                exitPosition = new Vector3Int(width * 2 - 1, height * 2, 0);
+                break;
+            case 1: // East (Bottom-right corner)
+                exitPosition = new Vector3Int(width * 2, 1, 0);
+                break;
+            case 2: // South (Bottom-left corner)
+                exitPosition = new Vector3Int(1, 0, 0);
+                break;
+            case 3: // West (Left-Top corner)
+                exitPosition = new Vector3Int(0, height * 2 - 1, 0);
+                break;
+        }
+
+        mazeTilemap.SetTile(exitPosition, pathTile);
+        
+        // Place the exit tile at the specified position
+        if (doorTile != null)
+        {
+            // Ensure the exit tile position is valid
+            if (mazeTilemap.HasTile(exitPosition))
+            {
+                // Set the tile at the exit position to the door tile
+                objectsTilemap.SetTile(exitPosition, doorTile);
+                openedTilemap.SetTile(exitPosition, openedDoorTile);
             }
         }
     }
