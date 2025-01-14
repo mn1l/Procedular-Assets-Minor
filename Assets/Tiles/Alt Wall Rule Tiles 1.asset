@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d1514134bc4fbd41bb739b1b9a49231, type: 3}
   m_Name: Alt Wall Rule Tiles 1
   m_EditorClassIdentifier: 
-  m_DefaultSprite: {fileID: -858636614, guid: 29a7abff51faf674fae1cccf7dd5dc20, type: 3}
+  m_DefaultSprite: {fileID: -122022875, guid: 29a7abff51faf674fae1cccf7dd5dc20, type: 3}
   m_DefaultGameObject: {fileID: 0}
   m_DefaultColliderType: 1
   m_TilingRules:
   - m_Id: 4
     m_Sprites:
-    - {fileID: -144173748, guid: 29a7abff51faf674fae1cccf7dd5dc20, type: 3}
+    - {fileID: 855633950, guid: 29a7abff51faf674fae1cccf7dd5dc20, type: 3}
     m_GameObject: {fileID: 0}
     m_MinAnimationSpeed: 1
     m_MaxAnimationSpeed: 1
